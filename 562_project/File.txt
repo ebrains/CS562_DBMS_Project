@@ -1,0 +1,2 @@
+SELECT ATTRIBUTE(S):
+cust, 1_sum_quant, 1_avg_quant, 2_sum_quant, 3_sum_quant, 3_avg_quant
