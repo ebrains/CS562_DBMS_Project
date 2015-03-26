@@ -1,3 +1,18 @@
 public class FaiStruct {
+	String cust;
+	int sum_quant_1;
+	int sum_quant_2;
+	int sum_quant_3;
+	int cnt_quant_1;
+	int cnt_quant_3;
+	int avg_quant_1;
+	int avg_quant_3;
 }
-Stringcustint1_sum_quantint1_avg_quantint2_sum_quantint3_sum_quantint3_avg_quant
+public class TestClass {
+	public static void main(String[] args) {
+		Statement st = con.createStatement();
+		String ret = "select * from sales";
+		rs = st.executeQuery(ret);
+		more=rs.next();
+	}
+}

@@ -1,2 +1,14 @@
 SELECT ATTRIBUTE(S):
-cust, 1_sum_quant, 1_avg_quant, 2_sum_quant, 3_sum_quant, 3_avg_quant
+cust, sum_quant_1,  sum_quant_2, sum_quant_3
+NUMBER OF GROUPING VARIABLES(n):
+3
+GROUPING ATTRIBUTES(V):
+cust
+F-VECT([F]):
+sum_quant_1, sum_quant_2, sum_quant_3, cnt_quant_1, cnt_quant_3, avg_quant_1, avg_quant_3
+SELECT CONDITION-VECT([¦Ò]): 
+1.state=¡¯NY¡¯
+2.state=¡¯NJ¡¯
+3.state=¡¯CT¡¯
+HAVING_CONDITION(G): 
+sum_quant_1 > 2 * sum_quant_2 or avg_quant_1 > avg_quant_3
