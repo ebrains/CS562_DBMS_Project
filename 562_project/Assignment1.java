@@ -5,6 +5,22 @@ import java.text.SimpleDateFormat;
 public class Assignment1 {
 
 	class FaiStruct {
+		String cust;
+		String prod;
+		long sum_quant_1;
+		int cnt_quant_1;
+		int avg_quant_1;
+		int max_quant_1;
+
+		FaiStruct() {
+			cust = null;
+			prod = null;
+			sum_quant_1 = 0;
+			cnt_quant_1 = 0;
+			avg_quant_1 = 0;
+			max_quant_1 = 0;
+		}
+
     }
 
     public static void main(String[] args) {

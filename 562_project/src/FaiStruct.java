@@ -9,6 +9,7 @@ public class FaiStruct {
 	private List<String> af_F;
 	private List<String> selectCondition_Q;
 	private List<String> havingCondition_G;
+	
 	public List<String> getProjAttri_S() {
 		return projAttri_S;
 	}
@@ -45,6 +46,5 @@ public class FaiStruct {
 	public void setHavingCondition_G(List<String> havingCondition_G) {
 		this.havingCondition_G = havingCondition_G;
 	}
-	
 	
 }
