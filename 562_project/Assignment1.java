@@ -80,9 +80,9 @@ public class Assignment1 {
 				rs = ps.executeQuery();  //ResultSet object gets the set of values retrieved from the database
             	boolean more;
             	more=rs.next();                         //checking if more rows available
-            	/*这个最后要在程序里判断输出，这里为了简略先写成这样
-            	sum_quant_0 = cnt_quant_0 = max_quant_0 = 0;
-                min_quant_0 = rs.getString("quant");*/
+            	
+            	
+                
             	
             	// define the database
         		//Map<String, FaiStruct> map = new HashMap<String, FaiStruct>();

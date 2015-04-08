@@ -5,7 +5,7 @@ import java.util.List;
 import java.sql.*;
 import java.util.Arrays;
 
-//min = -1 ∂‡”‡—≠ª∑ equals
+//min = -1 extraloop equals
 
 public class TestClass {
 	
