@@ -48,22 +48,46 @@ public class Assignment1 {
     //Function to retrieve from the database and process on the result set received
     
     public void retrieve(){
-
+		
         try {
         	conn = this.getConn();    //connect to the database using the password and username
+			System.out.println("Success connecting server!");
 			ps = conn.prepareStatement("select * from sales"); 
-			rs = ps.executeQuery();  //ResultSet object gets the set of values retrieved from the database
-	        System.out.println("Success connecting server!");
-        	
-            // define the database
-        	Map<String, FaiStruct> map = new HashMap<String, FaiStruct>();
-        	
-            String key = null;
-        	
-        	/*
-			 * TODO: Generated from source code
-			 */ 	
-        	
+	        Map<String, FaiStruct> map = new HashMap<String, FaiStruct>();
+        	//each time caculate one [F] (aggregate function)
+        	//first time build HashMap and fill grouping variable and caculate F0, next n time caculate F2 to Fn 
+        	//read the EMF paper page 6 will help you to understand the algorithm
+		
+				rs = ps.executeQuery();  //ResultSet object gets the set of values retrieved from the database
+            	boolean more;
+            	more=rs.next();                         //checking if more rows available
+            	/*这个最后要在程序里判断输出，这里为了简略先写成这样
+            	sum_quant_0 = cnt_quant_0 = max_quant_0 = 0;
+                min_quant_0 = rs.getString("quant");*/
+            	
+            	// define the database
+        		//Map<String, FaiStruct> map = new HashMap<String, FaiStruct>();
+
+            	String key = null;
+        		
+        		/*			 	
+        		* TODO: Generated from source code			 	
+        		*/
+        		 	
+        					Iterator<String> iter = map.keySet().iterator();
+							while(iter.hasNext()){
+								key = iter.next();
+								FaiStruct fs = map.get(key);
+								
+        				Iterator<String> iter = map.keySet().iterator();
+						while(iter.hasNext()){
+							key = iter.next();
+							FaiStruct fs = map.get(key);
+        					switch (i) {
+        				
+        					default:
+            					break;
+        					}
         } catch(SQLException e) {
         	System.out.println("Connection URL or username or password errors!");
         	e.printStackTrace();

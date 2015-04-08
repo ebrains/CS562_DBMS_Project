@@ -5,6 +5,7 @@ import java.util.List;
 import java.sql.*;
 import java.util.Arrays;
 
+//min = -1 extraloop equals
 
 public class TestClass {
 	
@@ -15,20 +16,24 @@ public class TestClass {
 		rj.readInput();
 		rj.printAttributes();
 	    rj.printConstructor();
-	    rj.printSegment(9, 61);
+	    rj.printSegment(9, 59);
 	    rj.printAlgorithm();
-	    rj.printSegment(67, 1000);
+	    rj.printSegment(91, 1000);
 	}
 	 
 }
 
 class RunJdbc{
 	
+	//declare the members used in database connect and query
 	private PreparedStatement ps = null;
 	private Connection conn = null;
 	private ResultSet rs = null;
+	
 	private FaiStruct Fai = new FaiStruct();
-	private List<String> con_sen = new ArrayList<String>();	//record strings for sentences in Fai constructor
+	private List<String> con_sen = new ArrayList<String>();	
+	//con_sen will be used in the retrieveType function
+	//it will record strings for sentences in Fai constructor (in the output java code - Assignment1.java)
 	
 	public FaiStruct getFai() {
 		return Fai;
@@ -49,7 +54,7 @@ class RunJdbc{
 	public Connection getConn() throws SQLException, ClassNotFoundException {
 		// set up database's user name, password and URL
 		String usr = "postgres";
-		String pwd = "ericwang9079";
+		String pwd = "a";
 		String url = "jdbc:postgresql://localhost:5432/postgres";
 		Class.forName("org.postgresql.Driver");
 		System.out.println("Success loading Driver!");
@@ -58,6 +63,7 @@ class RunJdbc{
 		return conn;
 	}
 	
+	//close connection
 	public void close(Connection conn, PreparedStatement ps, ResultSet rs) {
 		try {
 			if (rs != null) {
@@ -74,10 +80,14 @@ class RunJdbc{
 		}
 	}
 	
+	//the member in Faistruct should be grouping attribute + aggregate function
+	//printAttributes will get these members' data types and write these into output java code - Assignment1.java
 	public void printAttributes() {
+		//grouping attribute
 		List<String> list = retrieveType(Fai.getGa_V());
 		for (String str : list)
 			printStr(str);
+		//aggregate function
 		for (String agg : Fai.getAf_F()) {
 			String[] arr = agg.split("_");
 			printStr(judge(arr[0]) + agg + ";");
@@ -85,6 +95,7 @@ class RunJdbc{
 		}
 	}
 	
+	//print the constructor part of the Faistruct into output java code - Assignment1.java
 	public void printConstructor(){
 		printStr("\r\n		FaiStruct() {");
 		for (String sen : con_sen)
@@ -92,15 +103,14 @@ class RunJdbc{
 		printStr("		}\r\n");
 	}
 	
-	//Function to print some fixed code segments
+	//Function to print some fixed code segments(from line number = begin to line number = end)
 	public void printSegment(int begin, int end){
 		File file = new File("code segment for generator.txt");
 		try {
-			//read all line into lineList
 			FileReader fr = new FileReader(file);
 			BufferedReader bf = new BufferedReader(fr);
 			String line;
-			int count = 1;
+			int count = 1;	//line number
 			while((line = bf.readLine()) != null){
 				if (begin <= count && count <= end) 
 					printStr(line);
@@ -115,39 +125,138 @@ class RunJdbc{
 		}
 	}
 	
-	//Function to generate code for retrieving data from DB
+	//Function to generate the Algorithm part of the code 
+	//the algorithm is about scan
+	//At the first time we build HashMap and fill grouping attribute and calculate F0
+	//next NumGV_N time calculate F1 to Fn 
+	//read the EMF paper page 6 will help you to understand the algorithm
 	public void printAlgorithm(){
 		List<String> projAttributes = Fai.getProjAttri_S();
-		List<String> selectCondition  = Fai.getSelectCondition_Q();
+		List<String> selectCondition = Fai.getSelectCondition_Q();
 		List<String> groupingAttri = Fai.getGa_V();
 		List<String> aggreFunction = Fai.getAf_F();
+		int NumGV_N = Fai.getNumGV_N();
+		List<String> havingCondition = Fai.getHavingCondition_G();
 		
-		//Loop for each grouping variable
-		for(int i = 0; i < Fai.getNumGV_N(); i++){
-			String attriType = null; //Define grouping data attribute type for JDBC connection
-			printStr("        	while(rs.next()) {");
-			printStr("				" + selectCondition.get(i) + " {");
-			//Generate key in HashMap for specified grouping attribute. E.X. "key = rs.getString("cust") + rs.getString("prod");"
-			String key = "";
-			for(int l = 0; l < groupingAttri.size(); l++){
-				if(groupingAttri.get(l).equals("cust") || groupingAttri.get(l).equals("prod")){
-					attriType = "String";
-				}else if(groupingAttri.get(l).equals("state")){
-					attriType = "CharacterStream";
-				}else{
-					attriType = "Int";
-				}
-				if(l == groupingAttri.size() - 1){
-					key += ("rs.get" + attriType + "(\"" + groupingAttri.get(l) + "\")");  //Concatenate the key String for HashMap
-				}else{
-					key += ("rs.get" + attriType + "(\"" + groupingAttri.get(l) + "\") + ");  //Concatenate the key String for HashMap
-				}
+		//Statement and initialize the F0 argument if they exist.	E.X. sum_quant_0 
+		for(int k = 0; k < aggreFunction.size(); k++){
+			String[] arr = aggreFunction.get(k).split("_");
+			if(Integer.parseInt(arr[2]) == 0)
+				printStr("\t" + judge(arr[0]) + aggreFunction.get(k) + (arr[0].equals("min")?" = MAX" :" = 0") + ";");
+			else 
+				break;
+		}
+		
+		//the loop of scan begins: NumGV_N + 1 times
+		printStr("\t\t	for (int i = 0; i < " + String.valueOf(NumGV_N + 1) + "; i++) {");
+		printSegment(61, 72);
+		printStr("\t\t\t	while(more) {");
+		String attriType = null; //Define grouping data attribute type for JDBC connection
+		printStr("\t\t\t\t	if(i==0) {");
+		printStr("\t\t\t\t\t	" + selectCondition.get(0) + " {");
+		
+		//Generate key in HashMap for specified grouping attribute. E.X. "key = rs.getString("cust") + rs.getString("prod");"
+		String key = "";
+		//decide the attriType to combine the string like rs.get[attriType]([grouping attribute])	E.X. rs.getString("cust")
+		for(int l = 0; l < groupingAttri.size(); l++){
+			if(groupingAttri.get(l).equals("cust") || groupingAttri.get(l).equals("prod")){
+				attriType = "String";
+			}else if(groupingAttri.get(l).equals("state")){
+				attriType = "CharacterStream";
+			}else{
+				attriType = "Int";
 			}
-			printStr("					key = " + key + ";");
-			printStr("					if(map.containsKey(key)){");
-			String aggreResultNew = null; //Assign aggregate result for adding new combination operation
-			List<String> aggreResultNewList = new ArrayList<String>(); //List to store aggreResultNew
+			if(l == groupingAttri.size() - 1){
+				key += ("rs.get" + attriType + "(\"" + groupingAttri.get(l) + "\")");  //Concatenate the key String for HashMap
+			}else{
+				key += ("rs.get" + attriType + "(\"" + groupingAttri.get(l) + "\") + ");  //Concatenate the key String for HashMap
+			}
+		}
+		printStr("\t\t\t\t\t\t	key = " + key + ";");
+		
+		printStr("\t\t\t\t\t\t	if(map.containsKey(key)){\n");
+		//Generate code for adding new combination of grouping attributes
+		printStr("\t\t\t\t\t\t	}else {");
+		printStr("\t\t\t\t\t\t\t	FaiStruct fs = new FaiStruct();");
+		//Generate code for assigning attribute values
+		for (int l = 0; l < groupingAttri.size(); l++) {
+			printStr("\t\t\t\t\t\t\t	fs." + groupingAttri.get(l) + " = rs.get"
+					+ attriType + "(\"" + groupingAttri.get(l) + "\");");
+			// Parse to E.X. "fs.cust = rs.getString("cust");"
+		}
+		printStr("\t\t\t\t\t\t\t	map.put(key, fs);\n"
+				+ "\t\t\t\t\t\t	}"); 
+		
+		String aggreResultNew = null; //Assign aggregate result for adding new combination operation
+		List<String> aggreResultNewList = new ArrayList<String>(); //List to store aggreResultNew
+		//Generate code for updating aggregate values in F0
+		for(int k = 0; k < aggreFunction.size(); k++){
+			String[] arr = aggreFunction.get(k).split("_");
+			String aggreResultUpdate = null; //Assign aggregate result for update operation
+			if(Integer.parseInt(arr[2]) == 0){  //Make sure the aggregate functions are in the current grouping variable
+				switch (arr[0]){
+			 	case "sum":
+			 		aggreResultUpdate = aggreFunction.get(k) + " += rs.getInt(\"" + arr[1] + "\");"; 
+			 		//Parse to E.X. "map.get(key).sum_quant_1 += rs.getInt("quant")";
+			 		aggreResultNew = "map.get(key)." + aggreFunction.get(k) + " = " + aggreFunction.get(k) + ";"; 
+			 		//Parse to E.X. "fs.sum_quant_1 += rs.getInt("quant")";
+			 		aggreResultNewList.add(aggreResultNew);
+			 		break;
+			 	case "cnt":
+			 		aggreResultUpdate = aggreFunction.get(k) + " ++;"; 
+			 		aggreResultNew = "map.get(key)." + aggreFunction.get(k) + " = " + aggreFunction.get(k) + ";"; 
+			 		//Parse to E.X. "fs.sum_quant_1 += rs.getInt("quant")";
+			 		aggreResultNewList.add(aggreResultNew);
+			 		break;
+			 	case "max":
+			 		aggreResultUpdate = "if (" + aggreFunction.get(k) + " < rs.getInt(\"" + arr[1]+ "\"))\n"
+			 				+ "\t\t\t\t\t\t	" + aggreFunction.get(k) + " = rs.getInt(\"" + arr[1]+ "\");";
+			 		//Parse to E.X. "if (map.get(key).max_quant_1 < rs.getInt("quant"))
+			 		aggreResultNew = "map.get(key)." + aggreFunction.get(k) + " = " + aggreFunction.get(k) + ";"; 
+			 		//Parse to E.X. "fs.sum_quant_1 += rs.getInt("quant")";
+			 		aggreResultNewList.add(aggreResultNew);
+			 		break;
+			 	case "min":
+			 		aggreResultUpdate = "if (" + aggreFunction.get(k) + " > rs.getInt(\"" + arr[1]+ "\"))\n"
+			 				+ "\t\t\t\t\t\t	" + aggreFunction.get(k) + " = rs.getInt(\"" + arr[1]+ "\");";
+			 		aggreResultNew = "map.get(key)." + aggreFunction.get(k) + " = " + aggreFunction.get(k) + ";"; 
+			 		//Parse to E.X. "fs.sum_quant_1 += rs.getInt("quant")";
+			 		aggreResultNewList.add(aggreResultNew);
+			 		break;
+			 	case "avg":
+			 		aggreResultUpdate = aggreFunction.get(k) + " = (int) (sum_" + arr[1] + "_" + arr[2] + "/map.get(key).cnt_" + arr[1] + "_" + arr[2] + ");";  
+			 		//Parse to E.X. "map.get(key).avg_quant_1 = (int) (map.get(key).sum_quant_1/map.get(key).cnt_quant_1)";
+			 		aggreResultNew = "map.get(key)." + aggreFunction.get(k) + " = " + aggreFunction.get(k) + ";"; 
+			 		//Parse to E.X. "fs.sum_quant_1 += rs.getInt("quant")";
+			 		aggreResultNewList.add(aggreResultNew);
+			 		break;
+				}
+				printStr("\t\t\t\t\t\t	" + aggreResultUpdate);
+			}else 
+				break;
+		}
+
+		//if F0 exists, then update the whole map after each fetch.
+		//it may contains extra loop which can be avoid. but this method make sense 
+		if (aggreResultNewList.size() > 0) {
+			printSegment(77, 80);
+			for(int m = 0; m < aggreResultNewList.size(); m++)
+				printStr("\t\t\t\t\t\t\t	" + aggreResultNewList.get(m));
+				//Pare to E.X. "fs.sum_quant_1 += rs.getInt("quant");"
+			printStr("\t\t\t\t\t\t	}");
+		}
+		printStr("\t\t\t\t\t	}");
+		
+		printStr("\t\t\t\t	}else {");
+		printSegment(82, 86);
+		
+		//deal with the next NumGV_N times of scan
+		//the method seems to be same as the previous one, due to the slightly different output formation, 
+		//we have to do it again 
+		for(int i = 0; i < Fai.getNumGV_N(); i++){
 			//Generate code for updating aggregate values
+			printStr("\t\t\t\t\t\t	case " + String.valueOf(i+1) + ":");
+			printStr("\t\t\t\t\t\t\t	" + selectCondition.get(i+1) + " {");
 			for(int k = 0; k < aggreFunction.size(); k++){
 				String[] arr = aggreFunction.get(k).split("_");
 				String aggreResultUpdate = null; //Assign aggregate result for update operation
@@ -156,95 +265,78 @@ class RunJdbc{
 				 	case "sum":
 				 		aggreResultUpdate = "map.get(key)." + aggreFunction.get(k) + " += rs.getInt(\"" + arr[1] + "\");"; 
 				 		//Parse to E.X. "map.get(key).sum_quant_1 += rs.getInt("quant")";
-				 		aggreResultNew = "fs." + aggreFunction.get(k) + " += rs.getInt(\"" + arr[1] + "\");"; 
-				 		//Parse to E.X. "fs.sum_quant_1 += rs.getInt("quant")";
-				 		aggreResultNewList.add(aggreResultNew);
 				 		break;
 				 	case "cnt":
 				 		aggreResultUpdate = "map.get(key)." + aggreFunction.get(k) + " ++;"; 
 				 		//Parse to E.X. "map.get(key).cnt_quant_1++";
-				 		aggreResultNew = "fs." + aggreFunction.get(k) + " ++;"; 
-				 		//Parse to E.X. "fs.cnt_quant_1++";	
-				 		aggreResultNewList.add(aggreResultNew);
 				 		break;
 				 	case "max":
 				 		aggreResultUpdate = "if (map.get(key)." + aggreFunction.get(k) + " < rs.getInt(\"" + arr[1]+ "\"))\n"
-				 				+ "							map.get(key)." + aggreFunction.get(k) + " = rs.getInt(\"" + arr[1]+ "\");";
+				 				+ "\t\t\t\t\t\t\t\t\t	map.get(key)." + aggreFunction.get(k) + " = rs.getInt(\"" + arr[1]+ "\");";
 				 		//Parse to E.X. "if (map.get(key).max_quant_1 < rs.getInt("quant"))
-						//	map.get(key).max_quant_1 = rs.getInt("quant")";
-				 		aggreResultNew = "fs." + aggreFunction.get(k) + " = rs.getInt(\"" + arr[1] + "\");"; 
-				 		//fs.max_quant_1 = rs.getInt("quant");
-				 		aggreResultNewList.add(aggreResultNew);
 				 		break;
 				 	case "min":
 				 		aggreResultUpdate = "if (map.get(key)." + aggreFunction.get(k) + " > rs.getInt(\"" + arr[1]+ "\"))\n"
-				 				+ "							map.get(key)." + aggreFunction.get(k) + " = rs.getInt(\"" + arr[1]+ "\");";
-				 		aggreResultNew = "fs." + aggreFunction.get(k) + " = rs.getInt(\"" + arr[1] + "\");";
-				 		aggreResultNewList.add(aggreResultNew);
+				 				+ "\t\t\t\t\t\t\t\t\t	map.get(key)." + aggreFunction.get(k) + " = rs.getInt(\"" + arr[1]+ "\");";
 				 		break;
 				 	case "avg":
 				 		aggreResultUpdate = "map.get(key)." + aggreFunction.get(k) + " = (int) (map.get(key).sum_" + arr[1] + "_" + arr[2] + "/map.get(key).cnt_" + arr[1] + "_" + arr[2] + ");";  
 				 		//Parse to E.X. "map.get(key).avg_quant_1 = (int) (map.get(key).sum_quant_1/map.get(key).cnt_quant_1)";
-				 		aggreResultNew = "fs." + aggreFunction.get(k) + " = (int) (fs.sum_" + arr[1] + "_" + arr[2] + "/fs.cnt_" + arr[1] + "_" + arr[2] + ");"; 
-				 		//Parse to E.X. "fs.avg_quant_1 = (int) (fs.sum_quant_1/fs.cnt_quant_1)";
-				 		aggreResultNewList.add(aggreResultNew);
 				 		break;
-					}	
-				}
-				printStr("						" + aggreResultUpdate);
+					}
+					printStr("\t\t\t\t\t\t\t\t	" + aggreResultUpdate);
+				}else if (Integer.parseInt(arr[2]) > (i + 1))
+					break;
 			}
-			//Generate code for adding new combination of grouping attributes
-			printStr("					}else {");
-			printStr("						FaiStruct fs = new FaiStruct();");
-			//Generate code for assigning attribute values
-			for (int l = 0; l < groupingAttri.size(); l++) {
-				printStr("						fs." + groupingAttri.get(l) + " = rs.get"
-						+ attriType + "(\"" + groupingAttri.get(l) + "\");");
-				// Parse to E.X. "fs.cust = rs.getString("cust");"
-			}
-			//Generate code for assigning aggregate values
-			for(int m = 0; m < aggreResultNewList.size(); m++){
-				printStr("						" + aggreResultNewList.get(m));
-				//Pare to E.X. "fs.sum_quant_1 += rs.getInt("quant");"
-			}
-			
-			printStr("						map.put(key, fs);\n"
-					+ "					}\n" 
-					+ "				}\n" 
-					+ "			}\n");
+			printStr("\t\t\t\t\t\t\t	}\n"
+					+"\t\t\t\t\t\t\t	break;");
+			printSegment(88, 90);
 		}
+		
+		printStr("\t\t\t\t\t	}");
+
+		printStr("\t\t\t\t	}");
+		printStr("\t\t\t\t	more = rs.next();");
+
+		printStr("\t\t\t	}");
+		printStr("\t\t	}");
 		
 		//Generate code for printing out projected attributes and aggregate functions
 		for(int i = 0; i < projAttributes.size(); i++){
 			if(i == projAttributes.size() - 1){
-				printStr("			System.out.printf(\"%-7s  \\n\", \"" + projAttributes.get(i) + "\");");
+				printStr("\t\t	System.out.printf(\"%-7s  \\n\", \"" + projAttributes.get(i) + "\");");
 			}else{
-				printStr("			System.out.printf(\"%-7s  \", \"" + projAttributes.get(i) + "\");"); 
+				printStr("\t\t	System.out.printf(\"%-7s  \", \"" + projAttributes.get(i) + "\");"); 
 			}
 		}
 		//Generate code for printing out showing results statements
-		printStr("			Iterator<String> iter = map.keySet().iterator();");
-		printStr("			while(iter.hasNext()){");
-		printStr("				FaiStruct fs = map.get(iter.next());");
+		printStr("\t\t	Iterator<String> iter = map.keySet().iterator();");
+		printStr("\t\t	while(iter.hasNext()){");
+		printStr("\t\t\t\t	FaiStruct fs = map.get(iter.next());");
+		
+		//the having clause is one "if" sentence since we work out the whole map
+		//we just judge whether the tuple should be print or not by it 
+		printStr("\t\t\t\t	" + havingCondition.get(0) + " {");
 		//Generate code for printing out showing grouping attributes statements
 		for(int i = 0; i < groupingAttri.size(); i++){
-			printStr("				System.out.printf(\"%-7s  \", fs." + groupingAttri.get(i) + ");"); //System.out.printf("%-7s  ", fs.cust);
+			printStr("\t\t\t\t\t	System.out.printf(\"%-7s  \", fs." + groupingAttri.get(i) + ");"); //System.out.printf("%-7s  ", fs.cust);
 		}
 		//Generate code for printing out showing aggregate functions statements
 		for(int i = 0; i < aggreFunction.size(); i++){
 			if(i ==  aggreFunction.size() - 2 && !projAttributes.contains(aggreFunction.get(i+1))){
-				printStr("				System.out.printf(\"%11s  \\n\", fs." + aggreFunction.get(i) + ");");
+				printStr("\t\t\t\t\t	System.out.printf(\"%11s  \\n\", fs." + aggreFunction.get(i) + ");");
 				break;
 			}
 			if(projAttributes.contains(aggreFunction.get(i))){
 				if(i == aggreFunction.size() - 1){
-					printStr("				System.out.printf(\"%11s  \\n\", fs." + aggreFunction.get(i) + ");");
+					printStr("\t\t\t\t\t	System.out.printf(\"%11s  \\n\", fs." + aggreFunction.get(i) + ");");
 				}else{
-					printStr("				System.out.printf(\"%11s  \", fs." + aggreFunction.get(i) + ");"); //System.out.printf("%-7s  ", fs.avg_quant_1);
+					printStr("\t\t\t\t\t	System.out.printf(\"%11s  \", fs." + aggreFunction.get(i) + ");"); //System.out.printf("%-7s  ", fs.avg_quant_1);
 				}
 	 		}
 		}
-		printStr("			}");
+		printStr("\t\t\t\t	}");
+		printStr("\t\t	}");
 	}
 	
 	//Function to read input file and initialize FaiStruct
@@ -358,7 +450,7 @@ class RunJdbc{
 	        	for (String attribute : attribute_set) {
 	        		if (rs.getString("column_name").equals(attribute)){
 	        			list.add(judge(rs.getString("data_type")) + attribute + ";");
-		        		con_sen.add(attribute + (judge(rs.getString("data_type")) == "int"?" = 0":" = null") + ";");
+		        		con_sen.add(attribute + (judge(rs.getString("data_type")).equals("\t\tString")?" = null" :" = 0") + ";");
 		        	}
 	        	}
 	        }

@@ -36,7 +36,7 @@ public class Assignment1 {
     public Connection getConn() throws SQLException, ClassNotFoundException {
 		// set up database's user name, password and URL
 		String usr = "postgres";
-		String pwd = "a";
+		String pwd = "ericwang9079";
 		String url = "jdbc:postgresql://localhost:5432/postgres";
 		Class.forName("org.postgresql.Driver");
 		System.out.println("Success loading Driver!");
@@ -67,35 +67,79 @@ public class Assignment1 {
 
         try {
         	conn = this.getConn();    //connect to the database using the password and username
-			ps = conn.prepareStatement("select * from sales"); 
-			rs = ps.executeQuery();  //ResultSet object gets the set of values retrieved from the database
 	        System.out.println("Success connecting server!");
+        	ps = conn.prepareStatement("select * from sales"); 
+			
+        	//each time caculate one [F] (aggregate function)
+        	//first time build HashMap and fill grouping variable and caculate F0, next n time caculate F2 to Fn 
+        	//read the EMF paper page 6 will help you to understand the algorithm
+        	for (i = 0; i < numGV_N + 1; i++) {
+    			rs = ps.executeQuery();  //ResultSet object gets the set of values retrieved from the database
+            	
+                // define the database
+            	Map<String, FaiStruct> map = new HashMap<String, FaiStruct>();
+            	
+                String key = null;	
+            	
+            	more=rs.next();                         //checking if more rows available
+            	
+                //F0 initial 
+                sum_quant_0 = cnt = max = 0;
+                min = rs.getString("quant");
+                
+                while(more) {
+            		if (i==0) {
+            			if (such that [0] = where clause) {
+            				//initial group attribute
+            				key = rs.getString("cust") + rs.getString("prod");
+        					if(map.containsKey(key)){
         	
-            // define the database
-        	Map<String, FaiStruct> map = new HashMap<String, FaiStruct>();
+        					}else {
+        						FaiStruct fs = new FaiStruct();
+        						fs.cust = rs.getString("cust");
+        						fs.prod = rs.getString("prod");
+        						map.put(key, fs);
+        					}
+            			}
+            				
+            			//update F0
+            			sum_quant_0 += rs.getInt("quant");
+            			cnt++
+            			if max
+            			if min
+            			avg = sum / cnt
+            			//waste many useless loop
+            			Iterator iter = map.entrySet().iterator();
+            			while (iter.hasNext()) {
+            			　　Map.Entry entry = (Map.Entry) iter.next();
+            			　　Object key = entry.getKey();
+            			　　map.get(key).max_quant_0 = max;
+            			}	fs.sum_quant_1 += rs.getInt("quant");
+            				
+            		}else {
+            			Iterator iter = map.entrySet().iterator();
+            			while (iter.hasNext()) {
+            			　　Map.Entry entry = (Map.Entry) iter.next();
+            			　　Object key = entry.getKey();
+            			　　FaiStruct entry = entry.getValue();
+            				if (such that [i]) {
+            					//update attribute in Fi
+            					sum +=;
+            					cnt++
+            					avg;
+            					max min
+            					map.get(key).max_quant_1 = max;
+            				}
+
+            			}
+    				}
+    			}        		
+        		
+        		
+        	}
         	
-            String key = null;
-        	while(rs.next()) {
-				if (rs.getInt("year") == 1990) {
-					key = rs.getString("cust") + rs.getString("prod");
-					if(map.containsKey(key)){
-						map.get(key).sum_quant_1 += rs.getInt("quant");
-						map.get(key).cnt_quant_1 ++;
-						map.get(key).avg_quant_1 = (int) (map.get(key).sum_quant_1/map.get(key).cnt_quant_1);
-						if (map.get(key).max_quant_1 < rs.getInt("quant"))
-							map.get(key).max_quant_1 = rs.getInt("quant");
-					}else {
-						FaiStruct fs = new FaiStruct();
-						fs.cust = rs.getString("cust");
-						fs.prod = rs.getString("prod");
-						fs.sum_quant_1 += rs.getInt("quant");
-						fs.cnt_quant_1 ++;
-						fs.avg_quant_1 = (int) (fs.sum_quant_1/fs.cnt_quant_1);
-						fs.max_quant_1 = rs.getInt("quant");
-						map.put(key, fs);
-					}
-				}
-			}
+        	
+
 
 			System.out.printf("%-7s  ", "cust");
 			System.out.printf("%-7s  ", "prod");
