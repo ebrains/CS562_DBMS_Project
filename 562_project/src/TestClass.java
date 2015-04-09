@@ -5,7 +5,6 @@ import java.util.List;
 import java.sql.*;
 import java.util.Arrays;
 
-//min = -1 extraloop equals
 
 public class TestClass {
 	
@@ -18,7 +17,7 @@ public class TestClass {
 	    rj.printConstructor();
 	    rj.printSegment(9, 59);
 	    rj.printAlgorithm();
-	    rj.printSegment(91, 1000);
+	    rj.printSegment(80, 1000);
 	}
 	 
 }
@@ -149,7 +148,7 @@ class RunJdbc{
 		
 		//the loop of scan begins: NumGV_N + 1 times
 		printStr("\t\t	for (int i = 0; i < " + String.valueOf(NumGV_N + 1) + "; i++) {");
-		printSegment(61, 72);
+		printSegment(61, 65);
 		printStr("\t\t\t	while(more) {");
 		String attriType = null; //Define grouping data attribute type for JDBC connection
 		printStr("\t\t\t\t	if(i==0) {");
@@ -174,7 +173,57 @@ class RunJdbc{
 		}
 		printStr("\t\t\t\t\t\t	key = " + key + ";");
 		
-		printStr("\t\t\t\t\t\t	if(map.containsKey(key)){\n");
+		printStr("\t\t\t\t\t\t	if(map.containsKey(key)){");
+		
+		String aggreResultNew = null; //Assign aggregate result for adding new combination operation
+		List<String> aggreResultNewList = new ArrayList<String>(); //List to store aggreResultNew
+		//Generate code for updating aggregate values
+		for(int k = 0; k < aggreFunction.size(); k++){
+			String[] arr = aggreFunction.get(k).split("_");
+			String aggreResultUpdate = null; //Assign aggregate result for update operation
+			if(Integer.parseInt(arr[2]) == 0){  //Make sure the aggregate functions are in the current grouping variable
+				switch (arr[0]){
+			 	case "sum":
+			 		aggreResultUpdate = "map.get(key)." + aggreFunction.get(k) + " += rs.getInt(\"" + arr[1] + "\");"; 
+			 		//Parse to E.X. "map.get(key).sum_quant_1 += rs.getInt("quant")";
+			 		aggreResultNew = "fs." + aggreFunction.get(k) + " += rs.getInt(\"" + arr[1] + "\");"; 
+			 		//Parse to E.X. "fs.sum_quant_1 += rs.getInt("quant")";
+			 		aggreResultNewList.add(aggreResultNew);
+		 		break;
+			 	case "cnt":
+			 		aggreResultUpdate = "map.get(key)." + aggreFunction.get(k) + " ++;"; 
+			 		//Parse to E.X. "map.get(key).cnt_quant_1++";
+			 		aggreResultNew = "fs." + aggreFunction.get(k) + " ++;"; 
+			 		//Parse to E.X. "fs.cnt_quant_1++";	
+			 		aggreResultNewList.add(aggreResultNew);
+		 		break;
+			 	case "max":
+			 		aggreResultUpdate = "if (map.get(key)." + aggreFunction.get(k) + " < rs.getInt(\"" + arr[1]+ "\"))\n"
+			 				+ "\t\t\t\t\t\t\t	map.get(key)." + aggreFunction.get(k) + " = rs.getInt(\"" + arr[1]+ "\");";
+			 		//Parse to E.X. "if (map.get(key).max_quant_1 < rs.getInt("quant"))
+					//	map.get(key).max_quant_1 = rs.getInt("quant")";
+			 		aggreResultNew = "fs." + aggreFunction.get(k) + " = rs.getInt(\"" + arr[1] + "\");"; 
+			 		//fs.max_quant_1 = rs.getInt("quant");
+			 		aggreResultNewList.add(aggreResultNew);
+		 		break;
+			 	case "min":
+			 		aggreResultUpdate = "if (map.get(key)." + aggreFunction.get(k) + " > rs.getInt(\"" + arr[1]+ "\"))\n"
+			 				+ "\t\t\t\t\t\t\t	map.get(key)." + aggreFunction.get(k) + " = rs.getInt(\"" + arr[1]+ "\");";
+			 		aggreResultNew = "fs." + aggreFunction.get(k) + " = rs.getInt(\"" + arr[1] + "\");";
+			 		aggreResultNewList.add(aggreResultNew);
+		 		break;
+			 	case "avg":
+			 		aggreResultUpdate = "map.get(key)." + aggreFunction.get(k) + " = (int) (map.get(key).sum_" + arr[1] + "_" + arr[2] + "/map.get(key).cnt_" + arr[1] + "_" + arr[2] + ");";  
+			 		//Parse to E.X. "map.get(key).avg_quant_1 = (int) (map.get(key).sum_quant_1/map.get(key).cnt_quant_1)";
+			 		aggreResultNew = "fs." + aggreFunction.get(k) + " = (int) (fs.sum_" + arr[1] + "_" + arr[2] + "/fs.cnt_" + arr[1] + "_" + arr[2] + ");"; 
+			 		//Parse to E.X. "fs.avg_quant_1 = (int) (fs.sum_quant_1/fs.cnt_quant_1)";
+			 		aggreResultNewList.add(aggreResultNew);
+		 		break;
+				}	
+			}else
+				break;
+			printStr("\t\t\t\t\t\t\t	" + aggreResultUpdate);
+		}
 		//Generate code for adding new combination of grouping attributes
 		printStr("\t\t\t\t\t\t	}else {");
 		printStr("\t\t\t\t\t\t\t	FaiStruct fs = new FaiStruct();");
@@ -184,71 +233,18 @@ class RunJdbc{
 					+ attriType + "(\"" + groupingAttri.get(l) + "\");");
 			// Parse to E.X. "fs.cust = rs.getString("cust");"
 		}
-		printStr("\t\t\t\t\t\t\t	map.put(key, fs);\n"
-				+ "\t\t\t\t\t\t	}"); 
-		
-		String aggreResultNew = null; //Assign aggregate result for adding new combination operation
-		List<String> aggreResultNewList = new ArrayList<String>(); //List to store aggreResultNew
-		//Generate code for updating aggregate values in F0
-		for(int k = 0; k < aggreFunction.size(); k++){
-			String[] arr = aggreFunction.get(k).split("_");
-			String aggreResultUpdate = null; //Assign aggregate result for update operation
-			if(Integer.parseInt(arr[2]) == 0){  //Make sure the aggregate functions are in the current grouping variable
-				switch (arr[0]){
-			 	case "sum":
-			 		aggreResultUpdate = aggreFunction.get(k) + " += rs.getInt(\"" + arr[1] + "\");"; 
-			 		//Parse to E.X. "map.get(key).sum_quant_1 += rs.getInt("quant")";
-			 		aggreResultNew = "map.get(key)." + aggreFunction.get(k) + " = " + aggreFunction.get(k) + ";"; 
-			 		//Parse to E.X. "fs.sum_quant_1 += rs.getInt("quant")";
-			 		aggreResultNewList.add(aggreResultNew);
-			 		break;
-			 	case "cnt":
-			 		aggreResultUpdate = aggreFunction.get(k) + " ++;"; 
-			 		aggreResultNew = "map.get(key)." + aggreFunction.get(k) + " = " + aggreFunction.get(k) + ";"; 
-			 		//Parse to E.X. "fs.sum_quant_1 += rs.getInt("quant")";
-			 		aggreResultNewList.add(aggreResultNew);
-			 		break;
-			 	case "max":
-			 		aggreResultUpdate = "if (" + aggreFunction.get(k) + " < rs.getInt(\"" + arr[1]+ "\"))\n"
-			 				+ "\t\t\t\t\t\t	" + aggreFunction.get(k) + " = rs.getInt(\"" + arr[1]+ "\");";
-			 		//Parse to E.X. "if (map.get(key).max_quant_1 < rs.getInt("quant"))
-			 		aggreResultNew = "map.get(key)." + aggreFunction.get(k) + " = " + aggreFunction.get(k) + ";"; 
-			 		//Parse to E.X. "fs.sum_quant_1 += rs.getInt("quant")";
-			 		aggreResultNewList.add(aggreResultNew);
-			 		break;
-			 	case "min":
-			 		aggreResultUpdate = "if (" + aggreFunction.get(k) + " > rs.getInt(\"" + arr[1]+ "\"))\n"
-			 				+ "\t\t\t\t\t\t	" + aggreFunction.get(k) + " = rs.getInt(\"" + arr[1]+ "\");";
-			 		aggreResultNew = "map.get(key)." + aggreFunction.get(k) + " = " + aggreFunction.get(k) + ";"; 
-			 		//Parse to E.X. "fs.sum_quant_1 += rs.getInt("quant")";
-			 		aggreResultNewList.add(aggreResultNew);
-			 		break;
-			 	case "avg":
-			 		aggreResultUpdate = aggreFunction.get(k) + " = (int) (sum_" + arr[1] + "_" + arr[2] + "/map.get(key).cnt_" + arr[1] + "_" + arr[2] + ");";  
-			 		//Parse to E.X. "map.get(key).avg_quant_1 = (int) (map.get(key).sum_quant_1/map.get(key).cnt_quant_1)";
-			 		aggreResultNew = "map.get(key)." + aggreFunction.get(k) + " = " + aggreFunction.get(k) + ";"; 
-			 		//Parse to E.X. "fs.sum_quant_1 += rs.getInt("quant")";
-			 		aggreResultNewList.add(aggreResultNew);
-			 		break;
-				}
-				printStr("\t\t\t\t\t\t	" + aggreResultUpdate);
-			}else 
-				break;
+		//Generate code for assigning aggregate values
+		for(int m = 0; m < aggreResultNewList.size(); m++){
+			printStr("\t\t\t\t\t\t\t	" + aggreResultNewList.get(m));
+			//Pare to E.X. "fs.sum_quant_1 += rs.getInt("quant");"
 		}
 
-		//if F0 exists, then update the whole map after each fetch.
-		//it may contains extra loop which can be avoid. but this method make sense 
-		if (aggreResultNewList.size() > 0) {
-			printSegment(77, 80);
-			for(int m = 0; m < aggreResultNewList.size(); m++)
-				printStr("\t\t\t\t\t\t\t	" + aggreResultNewList.get(m));
-				//Pare to E.X. "fs.sum_quant_1 += rs.getInt("quant");"
-			printStr("\t\t\t\t\t\t	}");
-		}
-		printStr("\t\t\t\t\t	}");
+		printStr("\t\t\t\t\t\t\t	map.put(key, fs);\n"
+				+ "\t\t\t\t\t\t	}\n"
+				+ "\t\t\t\t\t	}\n"); 
 		
 		printStr("\t\t\t\t	}else {");
-		printSegment(82, 86);
+		printSegment(71, 75);
 		
 		//deal with the next NumGV_N times of scan
 		//the method seems to be same as the previous one, due to the slightly different output formation, 
@@ -290,8 +286,8 @@ class RunJdbc{
 			}
 			printStr("\t\t\t\t\t\t\t	}\n"
 					+"\t\t\t\t\t\t\t	break;");
-			printSegment(88, 90);
 		}
+		printSegment(77, 79);
 		
 		printStr("\t\t\t\t\t	}");
 
@@ -312,30 +308,30 @@ class RunJdbc{
 		//Generate code for printing out showing results statements
 		printStr("\t\t	Iterator<String> iter = map.keySet().iterator();");
 		printStr("\t\t	while(iter.hasNext()){");
-		printStr("\t\t\t\t	FaiStruct fs = map.get(iter.next());");
+		printStr("\t\t\t	FaiStruct fs = map.get(iter.next());");
 		
 		//the having clause is one "if" sentence since we work out the whole map
 		//we just judge whether the tuple should be print or not by it 
-		printStr("\t\t\t\t	" + havingCondition.get(0) + " {");
+		printStr("\t\t\t	" + havingCondition.get(0) + " {");
 		//Generate code for printing out showing grouping attributes statements
 		for(int i = 0; i < groupingAttri.size(); i++){
-			printStr("\t\t\t\t\t	System.out.printf(\"%-7s  \", fs." + groupingAttri.get(i) + ");"); //System.out.printf("%-7s  ", fs.cust);
+			printStr("\t\t\t\t	System.out.printf(\"%-7s  \", fs." + groupingAttri.get(i) + ");"); //System.out.printf("%-7s  ", fs.cust);
 		}
 		//Generate code for printing out showing aggregate functions statements
 		for(int i = 0; i < aggreFunction.size(); i++){
 			if(i ==  aggreFunction.size() - 2 && !projAttributes.contains(aggreFunction.get(i+1))){
-				printStr("\t\t\t\t\t	System.out.printf(\"%11s  \\n\", fs." + aggreFunction.get(i) + ");");
+				printStr("\t\t\t\t	System.out.printf(\"%11s  \\n\", fs." + aggreFunction.get(i) + ");");
 				break;
 			}
 			if(projAttributes.contains(aggreFunction.get(i))){
 				if(i == aggreFunction.size() - 1){
-					printStr("\t\t\t\t\t	System.out.printf(\"%11s  \\n\", fs." + aggreFunction.get(i) + ");");
+					printStr("\t\t\t\t	System.out.printf(\"%11s  \\n\", fs." + aggreFunction.get(i) + ");");
 				}else{
-					printStr("\t\t\t\t\t	System.out.printf(\"%11s  \", fs." + aggreFunction.get(i) + ");"); //System.out.printf("%-7s  ", fs.avg_quant_1);
+					printStr("\t\t\t\t	System.out.printf(\"%11s  \", fs." + aggreFunction.get(i) + ");"); //System.out.printf("%-7s  ", fs.avg_quant_1);
 				}
 	 		}
 		}
-		printStr("\t\t\t\t	}");
+		printStr("\t\t\t	}");
 		printStr("\t\t	}");
 	}
 	
@@ -450,7 +446,7 @@ class RunJdbc{
 	        	for (String attribute : attribute_set) {
 	        		if (rs.getString("column_name").equals(attribute)){
 	        			list.add(judge(rs.getString("data_type")) + attribute + ";");
-		        		con_sen.add(attribute + (judge(rs.getString("data_type")).equals("\t\tString")?" = null" :" = 0") + ";");
+		        		con_sen.add(attribute + (judge(rs.getString("data_type")).equals("\t\tString ")?" = null" :" = 0") + ";");
 		        	}
 	        	}
 	        }
