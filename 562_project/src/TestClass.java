@@ -137,15 +137,6 @@ class RunJdbc{
 		int NumGV_N = Fai.getNumGV_N();
 		List<String> havingCondition = Fai.getHavingCondition_G();
 		
-		//Statement and initialize the F0 argument if they exist.	E.X. sum_quant_0 
-		for(int k = 0; k < aggreFunction.size(); k++){
-			String[] arr = aggreFunction.get(k).split("_");
-			if(Integer.parseInt(arr[2]) == 0)
-				printStr("\t" + judge(arr[0]) + aggreFunction.get(k) + (arr[0].equals("min")?" = MAX" :" = 0") + ";");
-			else 
-				break;
-		}
-		
 		//the loop of scan begins: NumGV_N + 1 times
 		printStr("\t\t	for (int i = 0; i < " + String.valueOf(NumGV_N + 1) + "; i++) {");
 		printSegment(61, 65);
