@@ -75,8 +75,7 @@ public class Assignment1 {
         	//each time caculate one [F] (aggregate function)
         	//first time build HashMap and fill grouping variable and caculate F0, next n time caculate F2 to Fn 
         	//read the EMF paper page 6 will help you to understand the algorithm
-			long sum_quant_0 = 0;
-			for (int i = 0; i < 3; i++) {
+			for (int i = 0; i < 2; i++) {
 				rs = ps.executeQuery();  //ResultSet object gets the set of values retrieved from the database
             	boolean more;
             	more=rs.next();                         //checking if more rows available
@@ -87,12 +86,16 @@ public class Assignment1 {
 						if (rs.getInt("year") == 1990) {
 							key = rs.getString("cust") + rs.getString("prod");
 							if(map.containsKey(key)){
-								map.get(key).sum_quant_0 += rs.getInt("quant");
-							}else {
+								if (rs.getInt("year") == 1990) {
+									map.get(key).sum_quant_0 += rs.getInt("quant");
+								}
+							} else {
 								FaiStruct fs = new FaiStruct();
 								fs.cust = rs.getString("cust");
 								fs.prod = rs.getString("prod");
-								fs.sum_quant_0 += rs.getInt("quant");
+								if (rs.getInt("year") == 1990) {
+									fs.sum_quant_0 += rs.getInt("quant");
+								}
 								map.put(key, fs);
 							}
 						}
@@ -109,8 +112,6 @@ public class Assignment1 {
 									map.get(key).cnt_quant_1 ++;
 									map.get(key).avg_quant_1 = (int) (map.get(key).sum_quant_1/map.get(key).cnt_quant_1);
 								}
-								break;
-							case 2:
 								if (rs.getInt("year") == 1991 && fs.cust.equals(rs.getString("cust")) && fs.prod.equals(rs.getString("prod"))) {
 									if (map.get(key).max_quant_2 < rs.getInt("quant"))
 										map.get(key).max_quant_2 = rs.getInt("quant");
