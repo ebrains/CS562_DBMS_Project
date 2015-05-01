@@ -1,0 +1,30 @@
+SELECT ATTRIBUTE(S):
+cust, avg_quant_1, avg_quant_2, avg_quant_3
+NUMBER OF GROUPING VARIABLES(n):
+3
+GROUPING ATTRIBUTES(V):
+cust
+F-VECT([F]):
+avg_quant_1, avg_quant_2, avg_quant_3
+SELECT CONDITION-VECT([¦Ò]): 
+1_cust = 0_cust and 1_state = "NY", 2_cust = 0_cust and 2_month = 0_month+1, 3_cust = 0_cust and 3_state = "CT"
+1_prod = 0_prod and 1_month = 0_month-1, 2_prod = 0_prod and 2_month = 0_month-1, 3_prod = 0_prod and 3_month = 0_month and 3_quant > avg_quant_1 and 3_quant < avg_quant_2
+HAVING_CONDITION(G): 
+1_sum_quant > 2 * 2_sum_quant && 1_avg_quant > 3_avg_quant
+
+
+if (rs.getInt("year") == 1990 && fs.cust.equals(rs.getString("cust")) && fs.prod.equals(rs.getString("prod")))
+
+select cust, sum(x.quant), sum(y.quant), sum(z.quant)
+from sales
+group by cust: x, y, z
+such that 
+x.state = ¡®NY¡¯ -> 1_state = 'NY'
+and y.state = ¡®NJ¡¯
+and z.state = ¡®CT¡¯
+having sum(x.quant) > 2 * sum(y.quant) or avg(x.quant) > avg(z.quant);
+
+x.prod = prod and x.month = month-1,
+y.prod = prod and y.month = month+1,
+z.prod = prod and z.month = month and
+z.sale>avg(x.sale) and z.sale<avg(y.sale)

@@ -58,8 +58,14 @@ public class assignment1 {
 			}
 		}
 		void InsertEdge(int parent, int child) {
-			vertexSet.get(parent).add(child);
-			indegree.set(child, indegree.get(child) + 1);
+			boolean flag = true; 
+			for (int i = 0; i < vertexSet.get(parent).size(); i++)
+				if (vertexSet.get(parent).get(i) == child)
+					flag = false;
+			if (flag) {
+				vertexSet.get(parent).add(child);
+				indegree.set(child, indegree.get(child) + 1);	
+			}
 		}
 		void show() {
 			for (int i = 0; i < vertexSet.size(); i++) {
