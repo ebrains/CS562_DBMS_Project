@@ -1,15 +1,15 @@
 SELECT ATTRIBUTE(S):
-cust, prod, sum_quant_0, sum_quant_1, cnt_quant_1, avg_quant_1, max_quant_2
+cust, prod, avg_quant_1, avg_quant_2, avg_quant_1/avg_quant_2+sum_quant_2-avg_quant_2+avg_quant_1*cnt_quant_1
 NUMBER OF GROUPING VARIABLES(n):
 2
 GROUPING ATTRIBUTES(V):
 cust, prod
 F-VECT([F]):
-sum_quant_0, sum_quant_1, cnt_quant_1, avg_quant_1, max_quant_2
+sum_quant_1, cnt_quant_1, avg_quant_1, sum_quant_2, cnt_quant_2, avg_quant_2
 SELECT CONDITION-VECT([¦Ò]): 
-if (rs.getInt("year") == 1990), if (rs.getInt("year") == 1990 && fs.cust.equals(rs.getString("cust")) && fs.prod.equals(rs.getString("prod"))), if (rs.getInt("year") == 1991 && fs.cust.equals(rs.getString("cust")) && fs.prod.equals(rs.getString("prod")))
+, if (fs.cust.equals(rs.getString("cust")) && fs.prod.equals(rs.getString("prod"))), if (!fs.cust.equals(rs.getString("cust")) && fs.prod.equals(rs.getString("prod")))
 HAVING_CONDITION(G): 
-if (fs.avg_quant_1 < fs.max_quant_2)
+
 
 0 1
 0 2

@@ -8,20 +8,22 @@ public class Assignment1 {
 	class FaiStruct { 
 		String cust;
 		String prod;
-		long sum_quant_0;
 		long sum_quant_1;
 		int cnt_quant_1;
 		int avg_quant_1;
-		int max_quant_2;
+		long sum_quant_2;
+		int cnt_quant_2;
+		int avg_quant_2;
 
 		FaiStruct() {
 			cust = null;
 			prod = null;
-			sum_quant_0 = 0;
 			sum_quant_1 = 0;
 			cnt_quant_1 = 0;
 			avg_quant_1 = 0;
-			max_quant_2 = 0;
+			sum_quant_2 = 0;
+			cnt_quant_2 = 0;
+			avg_quant_2 = 0;
 		}
 
     }
@@ -38,7 +40,7 @@ public class Assignment1 {
     public Connection getConn() throws SQLException, ClassNotFoundException {
 		// set up database's user name, password and URL
 		String usr = "postgres";
-		String pwd = "a";
+		String pwd = "ericwang9079";
 		String url = "jdbc:postgresql://localhost:5432/postgres";
 		Class.forName("org.postgresql.Driver");
 		System.out.println("Success loading Driver!");
@@ -83,18 +85,16 @@ public class Assignment1 {
             	String key = null;
 				while(more) {
 					if(i==0) {
-						if (rs.getInt("year") == 1990) {
+						 {
 							key = rs.getString("cust") + rs.getString("prod");
 							if(map.containsKey(key)){
-								if (rs.getInt("year") == 1990) {
-									map.get(key).sum_quant_0 += rs.getInt("quant");
+								 {
 								}
 							} else {
 								FaiStruct fs = new FaiStruct();
 								fs.cust = rs.getString("cust");
 								fs.prod = rs.getString("prod");
-								if (rs.getInt("year") == 1990) {
-									fs.sum_quant_0 += rs.getInt("quant");
+								 {
 								}
 								map.put(key, fs);
 							}
@@ -107,14 +107,15 @@ public class Assignment1 {
 							FaiStruct fs = map.get(key);
 	        				switch (i) {
 							case 1:
-								if (rs.getInt("year") == 1990 && fs.cust.equals(rs.getString("cust")) && fs.prod.equals(rs.getString("prod"))) {
+								if (fs.cust.equals(rs.getString("cust")) && fs.prod.equals(rs.getString("prod"))) {
 									map.get(key).sum_quant_1 += rs.getInt("quant");
 									map.get(key).cnt_quant_1 ++;
 									map.get(key).avg_quant_1 = (int) (map.get(key).sum_quant_1/map.get(key).cnt_quant_1);
 								}
-								if (rs.getInt("year") == 1991 && fs.cust.equals(rs.getString("cust")) && fs.prod.equals(rs.getString("prod"))) {
-									if (map.get(key).max_quant_2 < rs.getInt("quant"))
-										map.get(key).max_quant_2 = rs.getInt("quant");
+								if (!fs.cust.equals(rs.getString("cust")) && fs.prod.equals(rs.getString("prod"))) {
+									map.get(key).sum_quant_2 += rs.getInt("quant");
+									map.get(key).cnt_quant_2 ++;
+									map.get(key).avg_quant_2 = (int) (map.get(key).sum_quant_2/map.get(key).cnt_quant_2);
 								}
 								break;
 	        				default:
@@ -127,22 +128,18 @@ public class Assignment1 {
 			}
 			System.out.printf("%-7s  ", "cust");
 			System.out.printf("%-7s  ", "prod");
-			System.out.printf("%-7s  ", "sum_quant_0");
-			System.out.printf("%-7s  ", "sum_quant_1");
-			System.out.printf("%-7s  ", "cnt_quant_1");
 			System.out.printf("%-7s  ", "avg_quant_1");
-			System.out.printf("%-7s  \n", "max_quant_2");
+			System.out.printf("%-7s  ", "avg_quant_2");
+			System.out.printf("%-7s  \n", "avg_quant_1/avg_quant_2+sum_quant_2-avg_quant_2+avg_quant_1*cnt_quant_1");
 			Iterator<String> iter = map.keySet().iterator();
 			while(iter.hasNext()){
 				FaiStruct fs = map.get(iter.next());
-				if (fs.avg_quant_1 < fs.max_quant_2) {
+				 {
 					System.out.printf("%-7s  ", fs.cust);
 					System.out.printf("%-7s  ", fs.prod);
-					System.out.printf("%11s  ", fs.sum_quant_0);
-					System.out.printf("%11s  ", fs.sum_quant_1);
-					System.out.printf("%11s  ", fs.cnt_quant_1);
 					System.out.printf("%11s  ", fs.avg_quant_1);
-					System.out.printf("%11s  \n", fs.max_quant_2);
+					System.out.printf("%11s  ", fs.avg_quant_2);
+					System.out.printf("%11s  \n", fs.avg_quant_1/fs.avg_quant_2+fs.sum_quant_2-fs.avg_quant_2+fs.avg_quant_1*fs.cnt_quant_1);
 				}
 			}
         } catch(SQLException e) {

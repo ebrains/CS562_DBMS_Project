@@ -55,7 +55,7 @@ class RunJdbc{
 	public Connection getConn() throws SQLException, ClassNotFoundException {
 		// set up database's user name, password and URL
 		String usr = "postgres";
-		String pwd = "a";
+		String pwd = "ericwang9079";
 		String url = "jdbc:postgresql://localhost:5432/postgres";
 		Class.forName("org.postgresql.Driver");
 		System.out.println("Success loading Driver!");
@@ -147,6 +147,7 @@ class RunJdbc{
 		printStr("\t\t\t\t	if(i==0) {");
 		printStr("\t\t\t\t\t	" + selectCondition.get(0) + " {");
 		
+		List<String> attriTypeList = new ArrayList<String>();
 		//Generate key in HashMap for specified grouping attribute. E.X. "key = rs.getString("cust") + rs.getString("prod");"
 		String key = "";
 		//decide the attriType to combine the string like rs.get[attriType]([grouping attribute])	E.X. rs.getString("cust")
@@ -158,6 +159,7 @@ class RunJdbc{
 			}else{
 				attriType = "Int";
 			}
+			attriTypeList.add(attriType);
 			if(l == groupingAttri.size() - 1){
 				key += ("rs.get" + attriType + "(\"" + groupingAttri.get(l) + "\")");  //Concatenate the key String for HashMap
 			}else{
@@ -218,8 +220,7 @@ class RunJdbc{
 					 		aggreResultNewList.add("\t" + aggreResultNew);
 				 		break;
 						}	
-					}else if (Integer.parseInt(arr[2]) > nodeSet.get(i))
-						break;
+					}
 					if (aggreResultUpdate != null)
 						printStr("\t\t\t\t\t\t\t\t	" + aggreResultUpdate); 
 								
@@ -235,7 +236,7 @@ class RunJdbc{
 		//Generate code for assigning attribute values
 		for (int l = 0; l < groupingAttri.size(); l++) {
 			printStr("\t\t\t\t\t\t\t	fs." + groupingAttri.get(l) + " = rs.get"
-					+ attriType + "(\"" + groupingAttri.get(l) + "\");");
+					+ attriTypeList.get(l) + "(\"" + groupingAttri.get(l) + "\");");
 			// Parse to E.X. "fs.cust = rs.getString("cust");"
 		}
 		//Generate code for assigning aggregate values
@@ -289,9 +290,7 @@ class RunJdbc{
 					 		break;
 						}
 						printStr("\t\t\t\t\t\t\t\t	" + aggreResultUpdate);
-					}else if (Integer.parseInt(arr[2]) > nodeSet.get(i))
-						break;
-				
+					}
 				}
 				printStr("\t\t\t\t\t\t\t	}");
 			}
@@ -324,24 +323,91 @@ class RunJdbc{
 		//the having clause is one "if" sentence since we work out the whole map
 		//we just judge whether the tuple should be print or not by it 
 		printStr("\t\t\t	" + havingCondition.get(0) + " {");
-		//Generate code for printing out showing grouping attributes statements
-		for(int i = 0; i < groupingAttri.size(); i++){
-			printStr("\t\t\t\t	System.out.printf(\"%-7s  \", fs." + groupingAttri.get(i) + ");"); //System.out.printf("%-7s  ", fs.cust);
-		}
-		//Generate code for printing out showing aggregate functions statements
-		for(int i = 0; i < aggreFunction.size(); i++){
-			if(i ==  aggreFunction.size() - 2 && !projAttributes.contains(aggreFunction.get(i+1))){
-				printStr("\t\t\t\t	System.out.printf(\"%11s  \\n\", fs." + aggreFunction.get(i) + ");");
-				break;
-			}
-			if(projAttributes.contains(aggreFunction.get(i))){
-				if(i == aggreFunction.size() - 1){
-					printStr("\t\t\t\t	System.out.printf(\"%11s  \\n\", fs." + aggreFunction.get(i) + ");");
-				}else{
-					printStr("\t\t\t\t	System.out.printf(\"%11s  \", fs." + aggreFunction.get(i) + ");"); //System.out.printf("%-7s  ", fs.avg_quant_1);
+		
+		//Add "fs." before every attribute and aggregate functions
+		List<String> parseProjAttributes = new ArrayList<String>();
+		String[] columArray = {"cust","prod","day","month","year","state","quant"};
+		List<String> columnList = Arrays.asList(columArray);
+		for(int i = 0; i < projAttributes.size(); i++){
+			String temp = projAttributes.get(i);
+			StringBuilder sb = new StringBuilder(temp);
+			//Add "fs." to every attributes and agg functions in Computation Expression. E.g. "avg_quant_1/avg_quant_2" to "fs.avg_quant_1/fs.avg_quant_2"
+			if(projAttributes.get(i).contains("+") || projAttributes.get(i).contains("-") || projAttributes.get(i).contains("*") || projAttributes.get(i).contains("/")){
+				for(int j = 0; j < aggreFunction.size(); j++){
+					if(projAttributes.get(i).contains(aggreFunction.get(j))){
+						int position = temp.indexOf(aggreFunction.get(j));
+						sb.insert(position, "fs.");
+						temp = sb.toString();
+						while(position < projAttributes.get(i).length()){
+							position = temp.indexOf(aggreFunction.get(j), position + aggreFunction.get(j).length());
+							if(position != -1){
+								sb.insert(position, "fs.");
+								temp = sb.toString();
+							}else{
+								break;
+							}
+						}
+					}
+					temp = sb.toString();
 				}
-	 		}
+//				for(int j = 0; j < columArray.length; j++){
+//					if(projAttributes.get(i).contains(columArray[j])){
+//						int position = temp.indexOf(columArray[j]);
+//						System.out.println(position);
+//						sb.insert(position, "fs.");
+//						temp = sb.toString();
+//						while(position < projAttributes.get(i).length()){
+//							position = temp.indexOf(columArray[j], position + columArray[j].length());
+//							if(position != -1){
+//								sb.insert(position, "fs.");
+//								temp = sb.toString();
+//							}else{
+//								break;
+//							}
+//						}
+//					}
+//				}
+			//Add "fs." before every attribute and aggregate functions
+			}else{
+				sb.insert(0, "fs.");
+			}
+			parseProjAttributes.add(sb.toString());
 		}
+		
+		for(int i = 0; i < parseProjAttributes.size(); i++){
+			if(i == parseProjAttributes.size() - 1){
+				if(columnList.contains(projAttributes.get(i))){
+					printStr("\t\t\t\t	System.out.printf(\"%-7s  \\n\", " + parseProjAttributes.get(i) + ");");
+				}else{
+					printStr("\t\t\t\t	System.out.printf(\"%11s  \\n\", " + parseProjAttributes.get(i) + ");");
+				}
+			}else{
+				if(columnList.contains(projAttributes.get(i))){
+					printStr("\t\t\t\t	System.out.printf(\"%-7s  \", " + parseProjAttributes.get(i) + ");");
+				}else{
+					printStr("\t\t\t\t	System.out.printf(\"%11s  \", " + parseProjAttributes.get(i) + ");");
+				}
+			}
+		}
+		
+//		//Generate code for printing out showing grouping attributes statements
+//		for(int i = 0; i < groupingAttri.size(); i++){
+//			printStr("\t\t\t\t	System.out.printf(\"%-7s  \", fs." + groupingAttri.get(i) + ");"); //System.out.printf("%-7s  ", fs.cust);
+//		}
+//		//Generate code for printing out showing aggregate functions statements
+//		for(int i = 0; i < aggreFunction.size(); i++){
+//			if(i ==  aggreFunction.size() - 2 && !projAttributes.contains(aggreFunction.get(i+1))){
+//				printStr("\t\t\t\t	System.out.printf(\"%11s  \\n\", fs." + aggreFunction.get(i) + ");");
+//				break;
+//			}
+//			if(projAttributes.contains(aggreFunction.get(i))){
+//				if(i == aggreFunction.size() - 1){
+//					printStr("\t\t\t\t	System.out.printf(\"%11s  \\n\", fs." + aggreFunction.get(i) + ");");
+//				}else{
+//					printStr("\t\t\t\t	System.out.printf(\"%11s  \", fs." + aggreFunction.get(i) + ");"); //System.out.printf("%-7s  ", fs.avg_quant_1);
+//				}
+//	 		}
+//		}
 		printStr("\t\t\t	}");
 		printStr("\t\t	}");
 	}
