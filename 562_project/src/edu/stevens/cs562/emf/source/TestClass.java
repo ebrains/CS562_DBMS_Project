@@ -20,9 +20,9 @@ public class TestClass {
 		rEmf.readInput();
 		rEmf.printAttributes();
 		rEmf.printConstructor();
-		rEmf.printSegment(10, 60);
+		rEmf.printSegment(13, 73);
 		rEmf.printAlgorithm();
-		rEmf.printSegment(81, 1000);
+		rEmf.printSegment(106, 1000);
 	}
 	 
 }
@@ -33,7 +33,7 @@ class RunEMF{
 	private static final String PWD = "ericwang9079";
 	private static final String URL = "jdbc:postgresql://localhost:5432/postgres";
 	private static final String SQLDRIVER = "org.postgresql.Driver";
-	private static final String INPUTFILE = "File1.txt";
+	private static final String INPUTFILE = "File2.txt";
 	private static final String TARGETFILE = "src\\edu\\stevens\\cs562\\emf\\target\\GeneratedProgram.java";
 	
 	/**
@@ -156,7 +156,7 @@ class RunEMF{
 		
 		//the loop of scan begins: NumGV_N + 1 times
 		printStr("\t\t	for (int i = 0; i < " + String.valueOf(G.max_indegree() + 1) + "; i++) {");
-		printSegment(62, 66);
+		printSegment(79, 82);
 		printStr("\t\t\t	while(more) {");
 		String attriType = null; //Define grouping data attribute type for JDBC connection
 		printStr("\t\t\t\t	if(i==0) {");
@@ -265,7 +265,7 @@ class RunEMF{
 				+ "\t\t\t\t\t	}\n"); 
 		
 		printStr("\t\t\t\t	}else {");
-		printSegment(72, 76);
+		printSegment(88, 92);
 		
 		//deal with the next NumGV_N times of scan
 		//the method seems to be same as the previous one, due to the slightly different output formation, 
@@ -313,7 +313,7 @@ class RunEMF{
 			printStr("\t\t\t\t\t\t\t	break;");
 			nodeSet = G.topoSort();
 		}
-		printSegment(78, 80);
+		printSegment(98, 100);
 		
 		printStr("\t\t\t\t\t	}");
 		printStr("\t\t\t\t	}");
