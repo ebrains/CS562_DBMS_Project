@@ -1,4 +1,4 @@
-package edu.stevens.cs562.emf;
+package edu.stevens.cs562.emf.source;
 import java.io.*; 
 import java.util.ArrayList;
 import java.util.List;
@@ -34,7 +34,7 @@ class RunEMF{
 	private static final String URL = "jdbc:postgresql://localhost:5432/postgres";
 	private static final String SQLDRIVER = "org.postgresql.Driver";
 	private static final String INPUTFILE = "File1.txt";
-	private static final String TARGETFILE = "src\\edu\\stevens\\cs562\\emf\\GeneratedProgram.java";
+	private static final String TARGETFILE = "src\\edu\\stevens\\cs562\\emf\\target\\GeneratedProgram.java";
 	
 	/**
 	 * declare the members used in database connect and query
@@ -51,22 +51,6 @@ class RunEMF{
 	private FaiStruct Fai = new FaiStruct();
 	
 	private Graph G = new Graph();
-	
-	public FaiStruct getFai() {
-		return Fai;
-	}
-
-	public void setFai(FaiStruct fai) {
-		Fai = fai;
-	}
-
-	public List<String> getCon_sen() {
-		return con_sen;
-	}
-
-	public void setCon_sen(List<String> con_sen) {
-		this.con_sen = con_sen;
-	}
 
 	/**
 	 * Get database connection
