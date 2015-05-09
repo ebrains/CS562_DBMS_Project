@@ -1,9 +1,10 @@
+package edu.stevens.cs562.emf;
 import java.sql.*;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
 
-public class Assignment1 {
+public class GeneratedProgram {
 
 	class FaiStruct { 
 		String cust;
@@ -29,13 +30,13 @@ public class Assignment1 {
     }
 
     public static void main(String[] args) {
-    	Assignment1 as = new Assignment1();
-    	as.retrieve();
+    	GeneratedProgram gp = new GeneratedProgram();
+    	gp.retrieve();
     }
     
     private PreparedStatement ps = null;
 	private Connection conn = null;
-	private ResultSet rs = null, rs1 = null, rs2 = null;
+	private ResultSet rs = null;
 
     public Connection getConn() throws SQLException, ClassNotFoundException {
 		// set up database's user name, password and URL
@@ -88,14 +89,10 @@ public class Assignment1 {
 						 {
 							key = rs.getString("cust") + rs.getString("prod");
 							if(map.containsKey(key)){
-								 {
-								}
 							} else {
 								FaiStruct fs = new FaiStruct();
 								fs.cust = rs.getString("cust");
 								fs.prod = rs.getString("prod");
-								 {
-								}
 								map.put(key, fs);
 							}
 						}
@@ -130,7 +127,7 @@ public class Assignment1 {
 			System.out.printf("%-7s  ", "prod");
 			System.out.printf("%-7s  ", "avg_quant_1");
 			System.out.printf("%-7s  ", "avg_quant_2");
-			System.out.printf("%-7s  \n", "avg_quant_1/avg_quant_2+sum_quant_2-avg_quant_2+avg_quant_1*cnt_quant_1");
+			System.out.printf("%-7s  \n", "avg_quant_1/avg_quant_2+sum_quant_2-(avg_quant_2+avg_quant_1)*cnt_quant_1");
 			Iterator<String> iter = map.keySet().iterator();
 			while(iter.hasNext()){
 				FaiStruct fs = map.get(iter.next());
@@ -139,7 +136,7 @@ public class Assignment1 {
 					System.out.printf("%-7s  ", fs.prod);
 					System.out.printf("%11s  ", fs.avg_quant_1);
 					System.out.printf("%11s  ", fs.avg_quant_2);
-					System.out.printf("%11s  \n", fs.avg_quant_1/fs.avg_quant_2+fs.sum_quant_2-fs.avg_quant_2+fs.avg_quant_1*fs.cnt_quant_1);
+					System.out.printf("%11s  \n", fs.avg_quant_1/fs.avg_quant_2+fs.sum_quant_2-(fs.avg_quant_2+fs.avg_quant_1)*fs.cnt_quant_1);
 				}
 			}
         } catch(SQLException e) {

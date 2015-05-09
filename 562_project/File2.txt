@@ -1,24 +1,15 @@
 SELECT ATTRIBUTE(S):
-cust, avg_quant_1, avg_quant_2, avg_quant_3
+prod, month, sum_quant_1, sum_quant_2
 NUMBER OF GROUPING VARIABLES(n):
-3
+2
 GROUPING ATTRIBUTES(V):
-cust
+prod, month
 F-VECT([F]):
-avg_quant_1, avg_quant_2, avg_quant_3
+sum_quant_1, sum_quant_2
 SELECT CONDITION-VECT([¦Ò]): 
-1.state="NY", 2.state="NJ", 3.state="CT"
+if (rs.getInt("year") == 1997), if (rs.getInt("year") == 1997 && fs.prod.equals(rs.getString("prod")) && fs.month==rs.getInt("month")), if (rs.getInt("year") == 1997 && fs.prod.equals(rs.getString("prod")))
 HAVING_CONDITION(G): 
-1_sum_quant > 2 * 2_sum_quant or 1_avg_quant > 3_avg_quant
 
 
-
-
-select cust, sum(x.quant), sum(y.quant), sum(z.quant)
-from sales
-group by cust: x, y, z
-such that 
-x.state = ¡®NY¡¯
-and y.state = ¡®NJ¡¯
-and z.state = ¡®CT¡¯
-having sum(x.quant) > 2 * sum(y.quant) or avg(x.quant) > avg(z.quant);
+0 1
+0 2

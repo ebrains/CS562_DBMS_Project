@@ -1,0 +1,18 @@
+SELECT ATTRIBUTE(S):
+prod, month, cnt_quant_3
+NUMBER OF GROUPING VARIABLES(n):
+3
+GROUPING ATTRIBUTES(V):
+prod, month
+F-VECT([F]):
+sum_quant_1, cnt_quant_1, avg_quant_1, sum_quant_2, cnt_quant_2, avg_quant_2, cnt_quant_3
+SELECT CONDITION-VECT([¦Ò]): 
+if (rs.getInt("year") == 1997), if (rs.getInt("year") == 1997 && fs.prod.equals(rs.getString("prod")) && fs.month==rs.getInt("month")+1), if (rs.getInt("year") == 1997 && fs.prod.equals(rs.getString("prod")) && fs.month==rs.getInt("month")-1), if (rs.getInt("year") == 1997 && fs.prod.equals(rs.getString("prod")) && fs.month==rs.getInt("month") && rs.getInt("quant")>fs.avg_quant_1 && rs.getInt("quant")<fs.avg_quant_2)
+HAVING_CONDITION(G): 
+
+
+0 1
+0 2
+0 3
+1 3
+2 3

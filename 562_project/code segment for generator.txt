@@ -1,21 +1,22 @@
+package edu.stevens.cs562.emf;
 import java.sql.*;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
 
-public class Assignment1 {
+public class GeneratedProgram {
 
 	class FaiStruct { 
     }
 
     public static void main(String[] args) {
-    	Assignment1 as = new Assignment1();
-    	as.retrieve();
+    	GeneratedProgram gp = new GeneratedProgram();
+    	gp.retrieve();
     }
     
     private PreparedStatement ps = null;
 	private Connection conn = null;
-	private ResultSet rs = null, rs1 = null, rs2 = null;
+	private ResultSet rs = null;
 
     public Connection getConn() throws SQLException, ClassNotFoundException {
 		// set up database's user name, password and URL
