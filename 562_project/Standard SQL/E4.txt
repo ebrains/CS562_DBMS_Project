@@ -1,0 +1,28 @@
+drop view IF EXISTS E4V0 CASCADE;
+drop view IF EXISTS E4V1 CASCADE;
+drop view IF EXISTS E4V2 CASCADE;
+
+create view E4V0 as
+select prod, month 
+from sales
+where year = 1997
+group by prod, month;
+
+create view E4V1 as
+select E4V0.prod, E4V0.month, coalesce(avg(sales.quant),0) as avgpre 
+from E4V0 left join sales on
+sales.year = 1997 and sales.prod = E4V0.prod and sales.month = E4V0.month-1
+group by E4V0.prod, E4V0.month;
+
+create view E4V2 as
+select E4V0.prod, E4V0.month, coalesce(avg(sales.quant),0) as avgafter 
+from E4V0 left join sales on
+sales.year = 1997 and sales.prod = E4V0.prod and sales.month = E4V0.month+1
+group by E4V0.prod,E4V0.month;
+
+select sales.prod, sales.month, count(sales.quant) 
+from sales, E4V1, E4V2
+where year = 1997 and sales.prod = E4V1.prod and sales.prod = E4V2.prod 
+      and sales.month = E4V1.month and sales.month = E4V2.month 
+      and sales.quant between E4V1.avgpre and E4V2.avgafter
+group by sales.prod, sales.month

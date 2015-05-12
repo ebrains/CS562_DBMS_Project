@@ -1,0 +1,8 @@
+select cust,avg(x.sale),avg(y.sale),avg(z.sale)
+from sales
+where year=1990
+group by cust; x,y,z
+such that x.cust=cust and x.state='NY',
+	  y.cust=cust and y.state='CT',
+	  z.cust=cust and z.state='NJ'
+having avg(x.sale)>avg(y.sale) and avg(x.sale)>avg(z.sale)

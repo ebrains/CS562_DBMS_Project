@@ -10,13 +10,23 @@ public class GeneratedProgram {
 		String prod;
 		int month;
 		long sum_quant_1;
+		int cnt_quant_1;
+		int avg_quant_1;
 		long sum_quant_2;
+		int cnt_quant_2;
+		int avg_quant_2;
+		int cnt_quant_3;
 
 		FaiStruct() {
 			prod = null;
 			month = 0;
 			sum_quant_1 = 0;
+			cnt_quant_1 = 0;
+			avg_quant_1 = 0;
 			sum_quant_2 = 0;
+			cnt_quant_2 = 0;
+			avg_quant_2 = 0;
+			cnt_quant_3 = 0;
 		}
 
     }
@@ -80,7 +90,7 @@ public class GeneratedProgram {
 			System.out.println("Success connecting server!");
 			ps = conn.prepareStatement("select * from sales"); 
 	        Map<String, FaiStruct> map = new HashMap<String, FaiStruct>();
-			for (int i = 0; i < 2; i++) {
+			for (int i = 0; i < 4; i++) {
 				rs = ps.executeQuery(); 
             	boolean more;
             	more=rs.next();                         
@@ -105,11 +115,20 @@ public class GeneratedProgram {
 							FaiStruct fs = map.get(key);
 	        				switch (i) {
 							case 1:
-								if (rs.getInt("year") == 1997 && fs.prod.equals(rs.getString("prod")) && fs.month==rs.getInt("month")) {
+								if (rs.getInt("year") == 1997 && fs.prod.equals(rs.getString("prod")) && fs.month==rs.getInt("month")+1) {
 									map.get(key).sum_quant_1 += rs.getInt("quant");
+									map.get(key).cnt_quant_1 ++;
+									map.get(key).avg_quant_1 = (int) (map.get(key).sum_quant_1/map.get(key).cnt_quant_1);
 								}
-								if (rs.getInt("year") == 1997 && fs.prod.equals(rs.getString("prod"))) {
+								if (rs.getInt("year") == 1997 && fs.prod.equals(rs.getString("prod")) && fs.month==rs.getInt("month")-1) {
 									map.get(key).sum_quant_2 += rs.getInt("quant");
+									map.get(key).cnt_quant_2 ++;
+									map.get(key).avg_quant_2 = (int) (map.get(key).sum_quant_2/map.get(key).cnt_quant_2);
+								}
+								break;
+							case 2:
+								if (rs.getInt("year") == 1997 && fs.prod.equals(rs.getString("prod")) && fs.month==rs.getInt("month") && rs.getInt("quant")>fs.avg_quant_1 && rs.getInt("quant")<fs.avg_quant_2) {
+									map.get(key).cnt_quant_3 ++;
 								}
 								break;
 	        				default:
@@ -122,18 +141,14 @@ public class GeneratedProgram {
 			}
 			System.out.printf("%-7s  ", "prod");
 			System.out.printf("%-7s  ", "month");
-			System.out.printf("%-7s  ", "sum_quant_1");
-			System.out.printf("%-7s  ", "sum_quant_2");
-			System.out.printf("%-7s  \n", "sum_quant_2/sum_quant_1");
+			System.out.printf("%-7s  \n", "cnt_quant_3");
 			Iterator<String> iter = map.keySet().iterator();
 			while(iter.hasNext()){
 				FaiStruct fs = map.get(iter.next());
 				 {
 					System.out.printf("%-7s  ", fs.prod);
 					System.out.printf("%-7s  ", fs.month);
-					System.out.printf("%11s  ", fs.sum_quant_1);
-					System.out.printf("%11s  ", fs.sum_quant_2);
-					System.out.printf("%11s  \n", fs.sum_quant_2/fs.sum_quant_1);
+					System.out.printf("%11s  \n", fs.cnt_quant_3);
 				}
 			}
         } catch(SQLException e) {

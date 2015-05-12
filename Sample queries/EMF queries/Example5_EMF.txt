@@ -1,0 +1,5 @@
+select cust, prod, avg(x.sale), avg(y.sale)
+from sales
+group by cust, prod ; x, y
+such that x.cust=cust and x.prod=prod,
+	  y.cust<>custand y.prod=prod

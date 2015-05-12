@@ -1,0 +1,6 @@
+select cust,month,avg(x.sale),avg(sale),avg(y.sale)
+from sales
+where year=1990
+group by cust, month ; x, y
+such that x.cust=cust and x.month < month,
+	  y.cust=cust and y.month > month

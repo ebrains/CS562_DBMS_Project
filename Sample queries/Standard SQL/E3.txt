@@ -1,0 +1,25 @@
+drop view IF EXISTS E3V1 CASCADE;
+drop view IF EXISTS E3V2 CASCADE;
+drop view IF EXISTS E3V3 CASCADE;
+
+create view E3V1 as
+select cust, month, avg(quant) as a
+from sales
+where year = 1990
+group by cust, month;
+
+create view E3V2 as
+select sales.cust, sales.month, avg(x.quant) as a
+from sales x, sales 
+where x.cust = sales.cust and x.month > sales.month and x.year = 1990 and sales.year = 1990
+group by sales.cust, sales.month;
+
+create view E3V3 as
+select sales.cust, sales.month, avg(y.quant) as a
+from sales y, sales
+where y.cust = sales.cust and y.month < sales.month and sales.year = 1990 and y.year = 1990
+group by sales.cust, sales.month;
+
+select E3V1.cust, E3V1.month, E3V2.a, E3V1.a, E3V3.a
+from E3V1, E3V2, E3V3
+where E3V1.cust = E3V2.cust and E3V1.cust = E3V3.cust and E3V1.month=E3V2.month and E3V1.month=E3V3.month

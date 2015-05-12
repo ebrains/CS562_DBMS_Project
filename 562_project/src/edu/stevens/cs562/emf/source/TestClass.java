@@ -1,3 +1,40 @@
+/*
+ * Name :Yubin Shen, Han Wang, Haichen Zhu, Svyatoslav Turets
+ * CWID: 10392736, 10391532, 10393844, 10389238
+ * File - TestClass.java 
+ * Desc - This is a program for processing MF/EMF query to generate a output source code(.java) 
+ *        for execute the result of the query. 
+ * 
+ *		  
+ *
+ * Steps to run this program : 
+ *  1. translate the MF/EMF query into our format using Input Instruction.txt and save it into a text file
+ *  such as File1.txt
+ *  2. In the program (TestClass.java) (L69 to L71), modify URL, username, password to yours. 
+ *  3. Run the program and generate a source code (GeneratedProgram.java)
+ *  4. In the program (GeneratedProgram.java) (L29 to L32), modify URL, username, password to yours.
+ *  5. Run the program (GeneratedProgram.java)
+ *
+ * Data structure choice
+ * In the program, we choose HashMap to record the data(mf-structure). The reason why 
+ * we choose it is that we can update the same combination of grouping attribute faster than the normal 
+ * data structure when we form the mf-structure. What's more, things become easier when we traverse the 
+ * whole Hashmap. And it is more intuitive.
+ *
+ * Detailed description of algorithm:
+ * Print out code for:
+ * 1. Generate maximum number of loops
+ * 2. First scan(generating MF structure)
+ * 	2.1 Match condition statement in such that clause(condition in "where" clause)
+ * 	2.2 Generating key(based on grouping attributes -> Hashmap)
+ * 	2.3 If mf-struct contains key, update AF for grouping variable 0
+ * 	2.4 If mf-struct !contains key, create new entry
+ * 3. 2-n scans(including dependency control topological sort), and for each scan:
+ *  3.1 Retrive mf-struct(Hashmap) to get entries
+ *  3.1 Match condition statements in such that clause to relative entries, and update
+ * 4. Output result
+ */
+
 package edu.stevens.cs562.emf.source;
 import java.io.*; 
 import java.util.ArrayList;
@@ -33,7 +70,7 @@ class RunEMF{
 	private static final String PWD = "ericwang9079";
 	private static final String URL = "jdbc:postgresql://localhost:5432/postgres";
 	private static final String SQLDRIVER = "org.postgresql.Driver";
-	private static final String INPUTFILE = "File2.txt";
+	private static final String INPUTFILE = "Input Files\\File2.txt";
 	private static final String TARGETFILE = "src\\edu\\stevens\\cs562\\emf\\target\\GeneratedProgram.java";
 	
 	/**
@@ -189,8 +226,6 @@ class RunEMF{
 		LinkedList<Integer> nodeSet = G.topoSort();
 		if (nodeSet != null) {
 			for (int i = 0; i < nodeSet.size(); i++) {
-//				printStr("\t\t\t\t\t\t\t	" + selectCondition.get(nodeSet.get(i)) + " {");
-//				aggreResultNewList.add(selectCondition.get(nodeSet.get(i)) + " {");
 				//Generate code for updating aggregate values:
 				for(int k = 0; k < aggreFunction.size(); k++){
 					String[] arr = aggreFunction.get(k).split("_");
@@ -238,8 +273,6 @@ class RunEMF{
 					if (aggreResultUpdate != null)
 						printStr("\t\t\t\t\t\t\t\t	" + aggreResultUpdate); 
 				}
-//				aggreResultNewList.add("}");
-//				printStr("\t\t\t\t\t\t\t	}");
 			}	
 		}
 		
@@ -263,7 +296,6 @@ class RunEMF{
 		printStr("\t\t\t\t\t\t\t	map.put(key, fs);\n"
 				+ "\t\t\t\t\t\t	}\n"
 				+ "\t\t\t\t\t	}\n"); 
-		
 		printStr("\t\t\t\t	}else {");
 		printSegment(88, 92);
 		
@@ -489,7 +521,7 @@ class RunEMF{
 	/**
 	 * Function to transfer the database variable type to java type
 	 * @param str
-	 * @return
+	 * @return data type
 	 */
 	public String judge(String str){
 		switch (str){

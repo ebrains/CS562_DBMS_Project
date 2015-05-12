@@ -1,0 +1,11 @@
+Input Instructions:
+
+for each operand, we split the attribute by ", ", so if there is any error character, the whole program will crash. 
+The dependency starts from line 14(if the first line is number 1). each line in the dependency area will contains two string: 
+the second one will depend on the first one. Note that there is only one space between the two string, any other thing put in the line will lead a crash. (even a space, it's hard for detection.)
+
+some example for translate the attribute into our input format:
+if there are n (n>=2) grouping variables in the query. we need to set them from 1 to n
+ x.state -> state_1
+ sum(x.quant) -> sum_quant_1
+ x.month = month -> rs.getInt("month") == fs.month

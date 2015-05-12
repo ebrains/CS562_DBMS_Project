@@ -1,0 +1,18 @@
+drop view IF EXISTS E2V1 CASCADE;
+drop view IF EXISTS E2V2 CASCADE;
+
+create view E2V1 as
+select prod,month,sum(quant) as summonth
+from sales 
+where year = '1997'
+group by prod,month;
+
+create view E2V2 as
+select prod,sum(quant) as sumyear
+from sales 
+where year = '1997'
+group by prod;
+
+select E2V1.prod, month, summonth, sumyear, sumyear/summonth
+from E2V1,E2V2
+WHERE E2V1.prod = E2V2.prod  

@@ -1,0 +1,17 @@
+drop view IF EXISTS E5V1 CASCADE;
+drop view IF EXISTS E5V2 CASCADE;
+
+create view E5V1 as
+select cust, prod, avg(quant) as x
+from sales
+group by cust,prod;
+
+create view E5V2 as
+select E5V1.prod, E5V1.cust, avg(sales.quant) as y
+from sales, E5V1
+where E5V1.cust<>sales.cust and sales.prod = E5V1.prod
+group by E5V1.prod, E5V1.cust;
+
+select E5V1.cust, E5V1.prod, E5V1.x, E5V2.y
+from E5V2, E5V1
+where E5V1.cust=E5V2.cust and E5V2.prod = E5V1.prod

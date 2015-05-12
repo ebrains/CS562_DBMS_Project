@@ -1,0 +1,8 @@
+select prod, month, count(z.quant)
+from sales
+where year=1990
+group by prod,month ; x,y,z
+such that x.prod = prod and x.month = x.month-1,
+	  y.prod = prod and y.month = y.month+1,
+	  z.prod = prod and z.month = month and
+	  z.sale>avg(x.sale) and z.sale<avg(y.sale)
